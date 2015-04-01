@@ -1,30 +1,43 @@
-package preprocessing;
+package advanced;
+
 
 import hadoopUtils.MBTools;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
-import advanced.AverageWeightMapper.OutputData;
-import advanced.AverageWeightMapper.Weight;
-
-public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Text, VIntWritable, Text> {
+public class NPMapper extends MapReduceBase implements Mapper<VIntWritable, Text, VIntWritable, Text> {
   
-
-	public enum OutputData {PURGED_BLOCKS, REMOVED_ENTITIES, VALID_COMPARISONS_X2};
+	public enum Weight {WEIGHT_COUNTER};
+	public enum OutputData {PURGED_BLOCKS};
+	public enum InputData {COMPARISONS};
+		
+	private String weightingScheme;
 	
-	private VIntWritable ei = new VIntWritable();	
-	Text biComparisonsEi = new Text();
+	private int cleanBlocks;
+	private int dirtyBlocks;
+	
+	private VIntWritable ei = new VIntWritable();
+	private VIntWritable ej = new VIntWritable();
+	Text iWij = new Text();
+	Text jWij = new Text();
+		
+	public void configure (JobConf job) {		
+		weightingScheme = job.get("weightingScheme"); //one of ARCS,CBS,ECBS,JS,EJS
+		cleanBlocks = job.getInt("cleanBlocks", 0);
+		dirtyBlocks = job.getInt("dirtyBlocks", 0);
+	}
 	
 
 	/**
@@ -33,7 +46,7 @@ public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Tex
 	 * @param value arrays of entity ids in this block (first element), along with the block ids (sorted) that contain them (remaining elements)
 	 * e.g. [1,7,8,9][3,1,8,10] means that in this block belong the entities 1 and 3 and entity 1 is placed in blocks 7,8,9 (sorted) and 
 	 * entity 3 is placed in blocks 1,8,10 
-	 * @param output key: entity id (each of the input values). value: inputKey,#non-redundant comparisons for ei in this block
+	 * @param output key: entity id (each of the input values). value: entity ids separated by " " (neighbors of output key)
 	 */	
 	public void map(VIntWritable key, Text value,
 			OutputCollector<VIntWritable, Text> output, Reporter reporter) throws IOException {	
@@ -53,9 +66,18 @@ public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Tex
 			}
 			entityIndex.put(entityId, blocks);
 		}
+		
+		DecimalFormat df = new DecimalFormat("#.###"); //format doubles to keep only first 4 decimal points (saves space)
 
-		/*//clean-clean ER
-		List<Integer> D1entities = new ArrayList<>();
+		//dirty ER
+		List<Integer> entities = new ArrayList<>(entityIndex.keySet());				
+		if (entities.size() < 2) {
+			reporter.incrCounter(OutputData.PURGED_BLOCKS, 1);
+			return;
+		}
+		
+		//clean-clean ER
+		/*List<Integer> D1entities = new ArrayList<>();
 		List<Integer> D2entities = new ArrayList<>();
 		for (int entity : entityIndex.keySet()) {
 			if (entity < 0) {
@@ -68,13 +90,6 @@ public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Tex
 			reporter.incrCounter(OutputData.PURGED_BLOCKS, 1);
 			return;
 		}*/
-		
-		//dirty ER
-		List<Integer> entities = new ArrayList<>(entityIndex.keySet());				
-		if (entities.size() < 2) {
-			reporter.incrCounter(OutputData.PURGED_BLOCKS, 1);
-			return;
-		}
 				
 		//clean-clean ER
 		/*int blockId = key.get();
@@ -84,29 +99,24 @@ public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Tex
 		int D1size = D1entities.size();
 		//TODO: add formatting, to skip many decimal digits in weight string
 		
-		Map<Integer, Integer> entityComparisons = new HashMap<>();
-		
 		for (int e1 : D1entities) {
 			reporter.setStatus(++counter+"/"+D1size);
 			blockse1 = entityIndex.get(e1);
 			for (int e2 : D2entities) {
 				blockse2 = entityIndex.get(e2);
-				if (!MBTools.isRepeated(blockse1, blockse2, blockId)) {	
-					Integer previous = entityComparisons.get(e1);
-					Integer newCount = previous == null ? 1 : previous+1;
-					entityComparisons.put(e1, newCount);
+				if (!MBTools.isRepeated(blockse1, blockse2, blockId, weightingScheme)) {
+					Double weight = MBTools.getWeight(blockse1, blockse2, blockId, weightingScheme, cleanBlocks, 0);
+					Double weightToEmit = Double.parseDouble(df.format(weight));					
+					ei.set(e1);
+					jWij.set(e2+","+weightToEmit);
+					output.collect(ei, jWij);
 					
-					previous = entityComparisons.get(e2);
-					newCount = previous == null ? 1 : previous+1;
-					entityComparisons.put(e2, newCount);
+					ej.set(e2);
+					iWij.set(e1+","+weightToEmit);
+					output.collect(ej, iWij);
 				}
 			}
-		}
-		
-		reporter.incrCounter(OutputData.REMOVED_ENTITIES, D1entities.size()+D2entities.size()- entityComparisons.keySet().size());
-		
-		*/
-		
+		}*/
 		
 		//dirty ER
 		int blockId = key.get();
@@ -117,7 +127,9 @@ public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Tex
 		entitiesArray = entities.toArray(entitiesArray);
 		int blockSize = entitiesArray.length;
 		
-		Map<Integer, Integer> entityComparisons = new HashMap<>();
+		long numEntities = entities.size();
+		
+		reporter.incrCounter(InputData.COMPARISONS, (numEntities * (numEntities-1))/2);
 		
 		for (int i = 0; i < blockSize-1; ++i) {
 			int e1 = entitiesArray[i];
@@ -127,34 +139,18 @@ public class EJSMapper extends MapReduceBase implements Mapper<VIntWritable, Tex
 				int e2 = entitiesArray[j];
 				blockse2 = entityIndex.get(e2);
 				if (!MBTools.isRepeated(blockse1, blockse2, blockId)) {
-					Integer previous = entityComparisons.get(e1);
-					Integer newCount = previous == null ? 1 : previous+1;
-					entityComparisons.put(e1, newCount);
+					Double weight = MBTools.getWeight(blockse1, blockse2, blockId, weightingScheme, dirtyBlocks);
+					Double weightToEmit = Double.parseDouble(df.format(weight));
+					ei.set(e1);
+					jWij.set(e2+","+weightToEmit);
+					output.collect(ei, jWij);
 					
-					previous = entityComparisons.get(e2);
-					newCount = previous == null ? 1 : previous+1;
-					entityComparisons.put(e2, newCount);
+					ej.set(e2);
+					iWij.set(e1+","+weightToEmit);
+					output.collect(ej, iWij);
 				}
 			}
-		}		
-		
-		reporter.incrCounter(OutputData.REMOVED_ENTITIES, entities.size()- entityComparisons.keySet().size());
-		
-		
-		
-		
-		//common for both dirty and clean-clean
-		for (Map.Entry<Integer, Integer> entity : entityComparisons.entrySet()) {
-			Integer comparisons = entity.getValue();
-			//if (comparisons == null) { continue; } //no non-redundant comparisons for this entity
-			ei.set(entity.getKey());
-			biComparisonsEi.set(key+","+comparisons);
-			output.collect(ei, biComparisonsEi);
-			reporter.incrCounter(OutputData.VALID_COMPARISONS_X2, comparisons);
 		}
-		
-		
-		
 	}
 
 	

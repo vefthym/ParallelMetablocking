@@ -9,10 +9,10 @@ import org.apache.hadoop.io.WritableComparator;
  * @author hduser
  *
  */
-public class DescendingShortComparator extends WritableComparator {
+public class DescendingDoubleComparator extends WritableComparator {
 	
-	protected DescendingShortComparator() {
-		super(ShortWritable.class, true);
+	protected DescendingDoubleComparator() {
+		super(DoubleWritable.class, true);
 	}
 		 
 	@SuppressWarnings("rawtypes")
