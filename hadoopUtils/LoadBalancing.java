@@ -1,3 +1,6 @@
+/* 
+ * Copyright (C) 2015 Vasilis Efthymiou <vefthym@ics.forth.gr>
+ */
 package Temp.BigData.LoadBalancing;
 
 import DataStructures.AbstractBlock;

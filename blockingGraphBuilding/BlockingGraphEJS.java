@@ -1,3 +1,6 @@
+/* 
+ * Copyright (C) 2015 Vasilis Efthymiou <vefthym@ics.forth.gr>
+ */
 package blockingGraphBuilding;
 
 import org.apache.hadoop.fs.Path;
