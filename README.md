@@ -3,8 +3,8 @@ Parallel Meta-blocking in MapReduce
 
 Source code for parallelizing the Meta-Blocking techniques introduced in:
 
-George Papadakis, Georgia Koutrika, Themis Palpanas, Wolfgang Nejdl: 
-Meta-Blocking: Taking Entity Resolution to the Next Level. IEEE Trans. Knowl. Data Eng. 26(8): 1946-1960 (2014)
+Parallel Meta-blocking: Realizing Scalable Entity Resolution over Large, Heterogeneous Data
+In the 3rd IEEE International Conference on Big Data (Big Data), 2015.
 
 The code is written in Java version 7, using Apache Hadoop, version 1.2.0.
 All experiments were performed on a cluster with 15 Ubuntu 12.04.3 LTS servers, 
