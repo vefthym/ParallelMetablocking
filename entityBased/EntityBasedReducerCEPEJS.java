@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -16,14 +17,12 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.RunningJob;
+
 
 import preprocessing.VIntArrayWritable;
 
@@ -111,13 +110,15 @@ public class EntityBasedReducerCEPEJS extends MapReduceBase implements Reducer<V
 		double currEntityWeight = Math.log10((double)comparisons/comparisonsPerEntity.get(entityId)); //pre-calculate this only once
 		int blocksOfCurrEntity = blocksPerEntity.get(entityId); //pre-calculate this only once
 
+		DecimalFormat df = new DecimalFormat("#.###"); //format doubles to keep only first 4 decimal points (saves space)
+		
 		for (int neighborId : counters.keySet()) {
 			double currentWeight = 
 					(counters.get(neighborId)/(blocksOfCurrEntity+blocksPerEntity.get(neighborId)-counters.get(neighborId))) *
 					currEntityWeight *
 					Math.log10((double)comparisons/comparisonsPerEntity.get(neighborId));
 			
-				weightToEmit.set(currentWeight);			
+				weightToEmit.set(Double.parseDouble(df.format(currentWeight)));			
 				output.collect(weightToEmit, one);			
 		}
 	

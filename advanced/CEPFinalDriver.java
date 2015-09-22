@@ -54,7 +54,7 @@ public class CEPFinalDriver {
             
             if (extraElements > 0) { //use a reducer  to skip the extra elements         	
             	
-            	conf.setMapperClass(advanced.CEPFinalMapper.class);
+            	conf.setMapperClass(advanced.CEPFinalMapperNew.class);
             	conf.setReducerClass(blockingGraphPruning.CEPFinalReducer.class); 
     		
             	conf.setNumReduceTasks(56);
@@ -62,7 +62,7 @@ public class CEPFinalDriver {
             	conf.setMapOutputKeyClass(DoubleWritable.class);
             	conf.setMapOutputValueClass(Text.class);
             } else { //don't use a reducer
-            	conf.setMapperClass(advanced.CEPFinalMapperOnly.class);    		
+            	conf.setMapperClass(advanced.CEPFinalMapperOnlyNew.class);    		
             	conf.setNumReduceTasks(0);
             }
             
@@ -75,6 +75,13 @@ public class CEPFinalDriver {
             Integer dirtyBlocks = Integer.parseInt(br3.readLine());
             conf.setInt("dirtyBlocks", dirtyBlocks);  
             
+            if (args[0].equals("EJS")) {
+            	Path pt2= new Path("/user/hduser/validComparisons.txt");                       
+            	br2=new BufferedReader(new InputStreamReader(fs.open(pt2)));
+            	String validComparisons = br2.readLine();
+            	conf.set("validComparisons", validComparisons);
+            }
+            
             
 	    } catch(Exception e){
 	    	System.err.println(e.toString());
@@ -82,6 +89,9 @@ public class CEPFinalDriver {
 	    	try { br.close(); br2.close();br3.close(); }
 			catch (IOException e) {System.err.println(e.toString());}
 	    }
+		
+		conf.setInt("mapred.task.timeout", 10000000); //before the non-reporting task fails
+//		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
 
 		client.setConf(conf);		
 		try {

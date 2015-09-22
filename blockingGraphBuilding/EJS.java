@@ -4,6 +4,7 @@
 package blockingGraphBuilding;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
@@ -19,6 +20,7 @@ import org.apache.hadoop.mapred.RunningJob;
 public class EJS extends MapReduceBase implements Reducer<Text, Text, Text, DoubleWritable> {
 
 	DoubleWritable toEmit = new DoubleWritable();
+	DecimalFormat df;
 	
 	long Eb = 0;
 	public void configure(JobConf conf) {
@@ -31,6 +33,7 @@ public class EJS extends MapReduceBase implements Reducer<Text, Text, Text, Doub
 		} catch (IOException e) {			
 			e.printStackTrace();
 		}
+		df = new DecimalFormat("#.###"); //format doubles to keep only first 3 decimal points (saves space)
 	}
 	
 	/**
@@ -44,10 +47,12 @@ public class EJS extends MapReduceBase implements Reducer<Text, Text, Text, Doub
 		String[] value1 = values.next().toString().split(",");
 		String[] value2 = values.next().toString().split(",");
 		double JS = Double.parseDouble(value1[0]);
-		int vi = Integer.parseInt(value1[1]);
-		int vj = Integer.parseInt(value2[1]);
-		double outputValue = JS * Math.log10(Eb /(double) vi) * Math.log10(Eb /(double) vj);
-		toEmit.set(outputValue);
+		double vi = Double.parseDouble(value1[1]); //to save further casting (int->double)
+		double vj = Double.parseDouble(value2[1]); //to save further casting (int->double)
+		double outputValue = JS * Math.log10(Eb / vi) * Math.log10(Eb / vj);
+		reporter.progress();
+		toEmit.set(Double.parseDouble(df.format(outputValue)));
+//		toEmit.set(outputValue);
 		output.collect(_key, toEmit);
 	}	
 	

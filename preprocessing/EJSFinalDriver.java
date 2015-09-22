@@ -42,6 +42,13 @@ public class EJSFinalDriver extends Configured {
 		conf.setMapperClass(IdentityMapper.class); //forward input to reducer
 		conf.setReducerClass(preprocessing.ExtendedInputReducer.class); //just concat the input intarrays, e.g. [][][]...[]
 		
+		conf.setInt("mapred.task.timeout", 10000000);
+		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
+		conf.setMaxReduceTaskFailuresPercent(10); //acceptable failures before the whole job fails
+		conf.set("mapred.reduce.max.attempts", "10"); //before it is not started again
+		conf.set("mapred.max.tracker.failures", "100"); //before it gets black-listed
+		conf.set("mapred.job.tracker.handler.count", "40");
+		
 		conf.setNumReduceTasks(224);
 
 		client.setConf(conf);

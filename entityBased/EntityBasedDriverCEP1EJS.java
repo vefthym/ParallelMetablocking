@@ -79,8 +79,8 @@ public class EntityBasedDriverCEP1EJS {
 		FileOutputFormat.setOutputPath(conf, new Path(args[2])); //entity-based output
 		
 
-//		conf.setMapperClass(entityBased.EntityBasedMapperFromCompressedNP.class); //Dirty
-		conf.setMapperClass(entityBased.EntityBasedMapperFromCompressedNPClean.class); //Clean-Clean ER
+		conf.setMapperClass(entityBased.EntityBasedMapperFromCompressedNP.class); //Dirty
+//		conf.setMapperClass(entityBased.EntityBasedMapperFromCompressedNPClean.class); //Clean-Clean ER
 		conf.setReducerClass(entityBased.EntityBasedReducerCEPEJS.class);
 		
 		conf.setNumReduceTasks(728);

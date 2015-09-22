@@ -80,20 +80,24 @@ public class EntityIndexDriver {
 		
 		try {								
 			Counters counters = job.getCounters();
-			long entities = counters.findCounter("org.apache.hadoop.mapred.Task$Counter",
+			Long entities = counters.findCounter("org.apache.hadoop.mapred.Task$Counter",
 					"REDUCE_OUTPUT_RECORDS").getCounter();
 			long blockAssignments = counters.findCounter(OutputData.BLOCK_ASSIGNMENTS).getCounter();			
 			Float BCin = blockAssignments / (float) entities;
 			Integer K = ((Double)Math.floor(blockAssignments / 2.0)).intValue();
 			Path pt=new Path("/user/hduser/BCin.txt");
 			Path k=new Path("/user/hduser/CEPk.txt"); //not tested
+			Path N=new Path("/user/hduser/numEntities.txt");
             FileSystem fs = FileSystem.get(new Configuration());
             BufferedWriter br=new BufferedWriter(new OutputStreamWriter(fs.create(pt,true)));            
             BufferedWriter br2=new BufferedWriter(new OutputStreamWriter(fs.create(k,true)));
+            BufferedWriter br3=new BufferedWriter(new OutputStreamWriter(fs.create(N,true)));
             br.write(BCin.toString());
             br2.write(K.toString());
+            br3.write(entities.toString());
             br.close();
             br2.close();
+            br3.close();
 		} catch (IllegalArgumentException | IOException e) {			
 			System.err.println(e.toString());
 		}

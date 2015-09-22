@@ -53,6 +53,9 @@ public class WEPDriver extends Configured {
 		conf.setMapperClass(advanced.WEPMapperOnly.class);		
 	//	conf.setReducerClass(advanced.WEPReducer.class);		
 				
+		conf.set("mapred.max.tracker.failures", "100"); //before it gets black-listed
+		conf.set("mapred.job.tracker.handler.count", "40");
+				
 		conf.setNumReduceTasks(0);
 		
 		//conf.setCompressMapOutput(true);

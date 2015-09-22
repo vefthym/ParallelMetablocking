@@ -39,10 +39,15 @@ public class WNPDriver {
 
 		conf.setMapperClass(blockingGraphPruning.NPMapper.class); //common for WNP and CNP
 		conf.setReducerClass(blockingGraphPruning.WNP.class); 
-		
-		conf.setNumReduceTasks(160);
-		
+				
+		conf.setInt("mapred.task.timeout", 10000000);
 		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
+		conf.setMaxReduceTaskFailuresPercent(10);		
+		conf.set("mapred.reduce.max.attempts", "10");
+		conf.set("mapred.max.tracker.failures", "100");
+		conf.set("mapred.job.tracker.handler.count", "40");
+		
+		conf.setNumReduceTasks(1120);
 		
 		conf.setCompressMapOutput(true);
 

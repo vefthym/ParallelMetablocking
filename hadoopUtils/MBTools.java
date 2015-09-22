@@ -5,6 +5,7 @@ package hadoopUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -150,11 +151,124 @@ public class MBTools {
 		 		 return commonBlocksEJS;
 		 	 }
 		 	 double probability = commonBlocksEJS / (actualBlocksE1.size() + actualBlocksE2.size() - commonBlocksEJS);
-		 	 return probability * Math.log10(validComparisons / e1Comparisons) * Math.log10(validComparisons / e2Comparisons);
+		 	 return probability * Math.log10((double)validComparisons / e1Comparisons) * Math.log10((double)validComparisons / e2Comparisons);
 		 }
 		 return -1;
 	}
+	
+	
+	
+	public static double getWeight(int blockIndex, int[] blocks1, int[] blocks2, String weightingScheme) {
+		return getWeight(blockIndex,blocks1,blocks2,weightingScheme,0,0);
+	}
+	
+	public static double getWeight(int blockIndex, int[] blocks1, int[] blocks2, String weightingScheme, int totalBlocks) {
+		return getWeight(blockIndex,blocks1,blocks2,weightingScheme,totalBlocks,0);		
+	}
+	
+	public static double getWeight(int blockIndex, int[] blocks1, int[] blocks2, String weightingScheme, int totalBlocks, long validComparisons) {
+		int commonBlocks = 0;
+        int noOfBlocks1 = blocks1.length;
+        int noOfBlocks2 = blocks2.length;
+        for (int i = 0; i < noOfBlocks1; i++) {
+            for (int j = 0; j < noOfBlocks2; j++) {
+                if (blocks2[j] < blocks1[i]) {
+                    continue;
+                }
+
+                if (blocks1[i] < blocks2[j]) {
+                    break;
+                }
+
+                if (blocks1[i] == blocks2[j]) {
+					if (commonBlocks == 0 && blocks1[i] != blockIndex) {
+						return -1; //comparison has been already performed
+					}
+                    commonBlocks++;
+                }
+            }
+        }
+	
+		switch (weightingScheme) {
+		 case "CBS":
+			 return commonBlocks;
+		 case "ECBS":
+		 	 return commonBlocks * Math.log10((double)totalBlocks / noOfBlocks1) * Math.log10((double)totalBlocks / noOfBlocks2);
+		 case "JS":
+		 	 return  ((double)commonBlocks) / (noOfBlocks1 + noOfBlocks2 - commonBlocks);
+		 case "EJS":
+			 Integer[] actualBlocksE1 = new Integer[blocks1.length-1]; 
+			 for (int i=0; i<blocks1.length-1; ++i){
+				 actualBlocksE1[i] = Integer.valueOf(blocks1[i]);
+			 }
+			 int[] actualBlocksE2 = new int[blocks2.length-1]; 
+			 System.arraycopy(blocks2, 0, actualBlocksE2, 0, blocks2.length-1);
+			 int e1Comparisons = blocks1[blocks1.length-1];
+			 int e2Comparisons = blocks2[blocks2.length-1];
+			 double commonBlocksEJS = getNoOfCommonBlocks(actualBlocksE1,actualBlocksE2);
+			 if (commonBlocksEJS < 0) {
+		 		 return commonBlocksEJS;
+		 	 }
+			 double probability = commonBlocksEJS / (actualBlocksE1.length + actualBlocksE2.length - commonBlocksEJS);
+			 return probability * Math.log10((double)validComparisons / e1Comparisons) * Math.log10((double)validComparisons / e2Comparisons);
+		 case "ARCS":						 
+			 final int[] commonIndices = getCommonBlockIndicesARCS(blocks1, blocks2);
+			 if (commonIndices == null) {
+				 return -1;
+			 }
+			 double totalWeight = 0;
+			 for (int i = 0; i < commonIndices.length; ++i) {
+				 totalWeight += 1.0 / commonIndices[i];
+			 }
+			 return totalWeight;
+		 default:
+			 return -2; //error: unsupported weighting scheme
+		}
+	}
+	
+	
 	 
+	
+
+	private static double getNoOfCommonBlocks(Integer[] blocks1, int[] blocks2) {
+		double counter = 0.0;		
+		Set<Integer> blocks1Set = new HashSet<>();
+		Collections.addAll(blocks1Set,blocks1);			
+		for (int block2 : blocks2) {
+			if (blocks1Set.contains(block2)) {
+				counter++;
+			}
+		}
+		return counter;
+	}
+	
+	/**
+	 * finds the common blocks of the two block collections and
+	 * returns an array of block sizes for the common blocks
+	 * @param blocks1 the blocks to which e1 belongs, along with their size [block1,|block1|,block2,|block2|,block3,...]
+	 * @param blocks2 the blocks to which e2 belongs, along with their size [block1,|block1|,block2,|block2|,block3,...]
+	 * @return an array of block sizes for the common blocks
+	 */
+	private static int[] getCommonBlockIndicesARCS(int[] blocks1, int[] blocks2) {
+		List<Integer> indicesOfCommonBlocks = new ArrayList<>();
+		
+		Set<Integer> blocks1Set = new HashSet<>();
+		for (int i = 0; i < blocks1.length; i+=2) { //store blocks1 in a set
+			blocks1Set.add(blocks1[i]);
+		}
+		for (int i = 0; i < blocks2.length; i+=2) { //find the indices (in blocks2) of common blocks
+			if (blocks1Set.contains(blocks2[i])) {
+				indicesOfCommonBlocks.add(i);
+			}
+		}
+		int[] result = new int[indicesOfCommonBlocks.size()];
+		for (int i = 0; i < result.length; ++i) {
+			result[i] = blocks2[indicesOfCommonBlocks.get(i)+1];//store the size of each common block in results
+		}
+		return result;
+	}	
+		
+
 	private static Map<Integer, Integer> getCommonBlockIndicesARCS(List<Integer> blocks1, List<Integer> blocks2) {		
 		Map<Integer,Integer> newBlocks1 = new HashMap<>();
 		for (int i = 0; i < blocks1.size(); i+=2) {
@@ -248,18 +362,9 @@ public class MBTools {
     }*/
 	
 	public static void main (String[] args) {		
-		List<VIntWritable> blocks = new ArrayList<>(); 
-		int comparisons = 9999;					
-
-		blocks.add(new VIntWritable(1));
-		blocks.add(new VIntWritable(1123123));
-		blocks.add(new VIntWritable(234234));
-		
-		VIntWritable[] toEmitArray = new VIntWritable[blocks.size()+2];
-		toEmitArray[0] = new VIntWritable(0); 													//first index->Eid
-		System.arraycopy(blocks.toArray(), 0, toEmitArray, 1, blocks.size());	//middle ->block
-		toEmitArray[blocks.size()+1] = new VIntWritable(comparisons);
-		System.out.println(Arrays.toString(toEmitArray));
+		int [] blocks1 = new int[]{1,2, 2,3, 5,3, 6,5};
+		int [] blocks2 = new int[]{1,2, 5,3, 4,5};
+		System.out.println(Arrays.toString(getCommonBlockIndicesARCS(blocks1, blocks2)));
 	}
 
 }

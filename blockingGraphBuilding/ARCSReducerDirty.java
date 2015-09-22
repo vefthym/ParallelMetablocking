@@ -44,7 +44,7 @@ public class ARCSReducerDirty extends MapReduceBase implements Reducer<VIntWrita
 		
 		long numEntities = entities.size();
 
-		long numComparisons = (numEntities * (numEntities-1)) / 2; //dirty ER (for ARCS)	
+		long numComparisons = (long)((long)numEntities * (long)(numEntities-1)) / 2; //dirty ER (for ARCS)	
 		
 		if (numComparisons == 0) {
 			reporter.incrCounter(OutputData.PURGED_BLOCKS, 1);

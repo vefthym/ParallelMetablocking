@@ -25,9 +25,9 @@ public class CEPCountingEJSDriver extends Configured {
 
 	public static void main(String[] args) {
 		JobClient client = new JobClient();
-		JobConf conf = new JobConf(advanced.CEPCountingEJSDriver.class);
+		JobConf conf = new JobConf(advanced.CEPCountingDriver.class);
 		
-		conf.setJobName("CEP Counting using Extended Input EJS"); //used for CEP
+		conf.setJobName("CEP Counting using Extended Input (EJS)"); //used for CEP
 		
 		conf.setMapOutputKeyClass(DoubleWritable.class);
 		conf.setMapOutputValueClass(VIntWritable.class);
@@ -39,38 +39,49 @@ public class CEPCountingEJSDriver extends Configured {
 		conf.setOutputFormat(TextOutputFormat.class);
 		
 		conf.setOutputKeyComparatorClass(hadoopUtils.DescendingDoubleComparator.class); //sort doubles in descending order
-
-				
-		FileInputFormat.setInputPaths(conf, new Path(args[0])); //EJSFinal
-		FileOutputFormat.setOutputPath(conf, new Path(args[1])); //minValue and extra (more than k) elements
 		
-		conf.setMapperClass(advanced.CEPEJSMapper.class);		
+		FileInputFormat.setInputPaths(conf, new Path(args[0])); //Extended Input
+		FileOutputFormat.setOutputPath(conf, new Path(args[1])); //minValue and extra (more than k) elements
+
+		conf.setMapperClass(advanced.CEPMapperNewEJS.class);		
 		conf.setCombinerClass(blockingGraphPruning.CEPCombiner.class);
 		conf.setReducerClass(blockingGraphPruning.CEPReducer.class);		
 		
 		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
+		conf.setInt("mapred.task.timeout", 10000000);
 		conf.setNumReduceTasks(1);
 		
 		conf.setCompressMapOutput(true);
 
-		BufferedReader br = null, br2 = null;
+		BufferedReader br = null, br2 = null, br3 = null;
 		try {
 			Path pt=new Path("/user/hduser/CEPk.txt");
             FileSystem fs = FileSystem.get(new Configuration());
             br=new BufferedReader(new InputStreamReader(fs.open(pt)));
-            Integer K = Integer.parseInt(br.readLine());            
+            Integer K = Integer.parseInt(br.readLine());
+            br.close();
             conf.setInt("K", K); 
             System.out.println("K="+K);
             
-            Path pt2= new Path("/user/hduser/validComparisons.txt");                       
-            br2=new BufferedReader(new InputStreamReader(fs.open(pt2)));
-            String validComparisons = br2.readLine();
-            conf.set("validComparisons", validComparisons);
+            Path cleanPath=new Path("/user/hduser/numBlocksClean.txt");
+			Path dirtyPath=new Path("/user/hduser/numBlocksDirty.txt");
+            br2=new BufferedReader(new InputStreamReader(fs.open(cleanPath)));
+            Integer cleanBlocks = Integer.parseInt(br2.readLine());
+            conf.setInt("cleanBlocks", cleanBlocks);
+            br3=new BufferedReader(new InputStreamReader(fs.open(dirtyPath)));
+            Integer dirtyBlocks = Integer.parseInt(br3.readLine());
+            conf.setInt("dirtyBlocks", dirtyBlocks);  
+            
+            
+        	Path pt2= new Path("/user/hduser/validComparisons.txt");                       
+        	br2=new BufferedReader(new InputStreamReader(fs.open(pt2)));
+        	String validComparisons = br2.readLine();
+        	conf.set("validComparisons", validComparisons);
             
 	    } catch(Exception e){
 	    	System.err.println(e.toString());
 	    } finally {
-	    	try { br.close(); br2.close();}
+	    	try { br.close(); br2.close();br3.close(); }
 			catch (IOException e) {System.err.println(e.toString());}
 	    }
 

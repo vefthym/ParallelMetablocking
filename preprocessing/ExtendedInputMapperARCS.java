@@ -20,11 +20,11 @@ public class ExtendedInputMapperARCS extends MapReduceBase implements Mapper<VIn
 	
 	/**
 	 * maps an input entity index into (key, value) pair(s)
-	 * the value is the entity id (input key) along with the ids of blocks that contain it
+	 * the value is the entity id (input key) along with the ids of blocks that contain it and the size of each block
 	 * the key each time is a block id (each element of the input value array)
 	 * @param key an entity id
 	 * @param value an array of [blockId,blockSize] of the blocks that this entity belongs to
-	 * @param output key: a block id (each element of the input value array) - value: the entity id (input key), the ids of blocks containing this entity (Bi)  
+	 * @param output key: a block id (each element of the input value array) - value: the entity id (input key), the ids of blocks containing this entity (Bi), each along with its size |b|   
 	 */
 	public void map(VIntWritable key, VIntArrayWritable value,
 			OutputCollector<VIntWritable, VIntArrayWritable> output, Reporter reporter) throws IOException {

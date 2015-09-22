@@ -45,7 +45,7 @@ public class AverageWeightDriver extends Configured {
 		FileInputFormat.setInputPaths(conf, new Path(args[1])); //Blocking Graph 
 		FileOutputFormat.setOutputPath(conf, new Path(args[2])); //All unique comparisons with their weight
 
-		conf.setMapperClass(advanced.AverageWeightMapper.class);
+		conf.setMapperClass(advanced.AverageWeightMapperNewFromCompressed.class);
 		//conf.setCombinerClass(advanced.AverageWeightCombiner.class);
 		//conf.setReducerClass(advanced.AverageWeightReducer.class);		
 		
@@ -61,7 +61,15 @@ public class AverageWeightDriver extends Configured {
             conf.setInt("cleanBlocks", cleanBlocks);
             br3=new BufferedReader(new InputStreamReader(fs.open(dirtyPath)));
             Integer dirtyBlocks = Integer.parseInt(br3.readLine());
-            conf.setInt("dirtyBlocks", dirtyBlocks);            
+            conf.setInt("dirtyBlocks", dirtyBlocks);   
+            
+            if (args[0].equals("EJS")) {
+            	Path pt2= new Path("/user/hduser/validComparisons.txt");                       
+            	br2=new BufferedReader(new InputStreamReader(fs.open(pt2)));
+            	String validComparisons = br2.readLine();
+            	conf.set("validComparisons", validComparisons);
+            }            
+            
 	    }catch(Exception e){
 	    	System.err.println(e.toString());
 	    } finally {
@@ -69,7 +77,16 @@ public class AverageWeightDriver extends Configured {
 			catch (IOException e) {System.err.println(e.toString());}
 	    }
 		
+		
+		
+		
 //		conf.setCompressMapOutput(true);
+		conf.set("mapred.max.tracker.failures", "100"); //before it gets black-listed
+		conf.set("mapred.job.tracker.handler.count", "40");
+		conf.setInt("mapred.task.timeout", 10000000); //before the non-reporting task fails
+		
+		
+		
 
 		client.setConf(conf);
 		RunningJob job = null;
@@ -87,10 +104,10 @@ public class AverageWeightDriver extends Configured {
 		
 		try {								
 			Counters counters = job.getCounters();			
-			double totalWeight = counters.findCounter(advanced.AverageWeightMapper.Weight.WEIGHT_COUNTER).getCounter() / 1000.0;			
+			double totalWeight = counters.findCounter(advanced.AverageWeightMapperNewFromCompressed.Weight.WEIGHT_COUNTER).getCounter() / 1000.0;			
 			long comparisons = counters.findCounter("org.apache.hadoop.mapred.Task$Counter",
 					"MAP_OUTPUT_RECORDS").getCounter();
-			Double averageWeight = (double) totalWeight /  comparisons;
+			Double averageWeight = totalWeight /  comparisons;
 			Path pt=new Path("/user/hduser/averageWeight.txt");
 			FileSystem fs = FileSystem.get(new Configuration());
 	        BufferedWriter br=new BufferedWriter(new OutputStreamWriter(fs.create(pt,true)));

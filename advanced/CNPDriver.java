@@ -45,7 +45,7 @@ public class CNPDriver extends Configured {
 		FileInputFormat.setInputPaths(conf, new Path(args[1])); //ExtendedInput
 		FileOutputFormat.setOutputPath(conf, new Path(args[2])); //CNP
 
-		conf.setMapperClass(advanced.NPMapper.class);		
+		conf.setMapperClass(advanced.NPMapperNew.class);		
 		conf.setReducerClass(blockingGraphPruning.CNP.class);		
 				
 		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");

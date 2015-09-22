@@ -37,9 +37,14 @@ public class EJSDriver {
 		
 		conf.setCompressMapOutput(true);
 		
-		conf.setNumReduceTasks(160);
+		conf.setNumReduceTasks(1120);
 		
-		conf.set("mapred.reduce.slowstart.completed.maps", "1.0");
+		conf.setInt("mapred.task.timeout", 10000000);
+		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
+		conf.setMaxReduceTaskFailuresPercent(10);		
+		conf.set("mapred.reduce.max.attempts", "30");
+		conf.set("mapred.max.tracker.failures", "200");
+		conf.set("mapred.job.tracker.handler.count", "40");
 		
 		client.setConf(conf);
 		try {

@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
@@ -20,7 +18,9 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
-public class NPMapper extends MapReduceBase implements Mapper<VIntWritable, Text, VIntWritable, Text> {
+import preprocessing.VIntArrayWritable;
+
+public class NPMapperNewFromCompressed extends MapReduceBase implements Mapper<VIntWritable, VIntArrayWritable, VIntWritable, Text> {
   
 	public enum Weight {WEIGHT_COUNTER};
 	public enum OutputData {PURGED_BLOCKS};
@@ -28,11 +28,11 @@ public class NPMapper extends MapReduceBase implements Mapper<VIntWritable, Text
 		
 	private String weightingScheme;
 	
+	private final VIntWritable DELIM = new VIntWritable(Integer.MIN_VALUE);
+	
 	private int cleanBlocks;
 	private int dirtyBlocks;
 	
-	private VIntWritable ei = new VIntWritable();
-	private VIntWritable ej = new VIntWritable();
 	Text iWij = new Text();
 	Text jWij = new Text();
 		
@@ -49,35 +49,56 @@ public class NPMapper extends MapReduceBase implements Mapper<VIntWritable, Text
 	 * @param value arrays of entity ids in this block (first element), along with the block ids (sorted) that contain them (remaining elements)
 	 * e.g. [1,7,8,9][3,1,8,10] means that in this block belong the entities 1 and 3 and entity 1 is placed in blocks 7,8,9 (sorted) and 
 	 * entity 3 is placed in blocks 1,8,10 
-	 * @param output key: entity id i (each of the input values). value: entity id j, weight of ei-ej wij
+	 * @param output key: entity id (each of the input values). value: entity ids separated by " " (neighbors of output key)
 	 */	
-	public void map(VIntWritable key, Text value,
+	public void map(VIntWritable key, VIntArrayWritable value,
 			OutputCollector<VIntWritable, Text> output, Reporter reporter) throws IOException {	
-		reporter.setStatus("splitting the block "+key);		
+		reporter.setStatus("splitting the block "+key);
+
+		VIntWritable[] inputArray = value.get();
 		
-		Map<Integer,List<Integer>> entityIndex = new TreeMap<>(); //key is entity id, value is the list of blocks that contain the key
-		List<Integer> blocks;
-		String[] entityIndices = value.toString().split("]"); //each entityIndex is an array with the first element the entity and the rest elements its blocks
-		for (String tmpEntityIndex : entityIndices) {
-			if (tmpEntityIndex == null || tmpEntityIndex.length() < 2) {continue;}
-			tmpEntityIndex = tmpEntityIndex.substring(1); //to remove the initial '['
-			String[] idsArray = tmpEntityIndex.split(", ");
-			int entityId = Integer.parseInt(idsArray[0]);
-			blocks = new ArrayList<>(idsArray.length-1); //maybe initial capacity is not needed
-			for (int i=1; i < idsArray.length; ++i) {
-				blocks.add(Integer.parseInt(idsArray[i]));
+		int noOfEntities = 0;
+		int lastIndex = 0;
+		List<VIntWritable[]> entityIndices = new ArrayList<>();
+		int i;
+		for	(i = 0; i < inputArray.length; ++i){			
+			if (inputArray[i].equals(DELIM)) {
+				VIntWritable[] tmpEntityIndex = new VIntWritable[i-lastIndex];
+				noOfEntities++;
+				System.arraycopy(inputArray, lastIndex, tmpEntityIndex, 0, i-lastIndex);
+				entityIndices.add(tmpEntityIndex);
+				lastIndex = i+1; //the index of the first element (entity Id) of the new array
 			}
-			entityIndex.put(entityId, blocks);
+		}
+		int counter = 0;		
+		//dirty ER			
+//		if (noOfEntities == 0) { 
+//			reporter.incrCounter(OutputData.PURGED_BLOCKS, 1);
+//			return;
+//		}
+		
+		//do the same for the last entity Index
+		VIntWritable[] lastEntityIndex = new VIntWritable[i-lastIndex];
+		noOfEntities++;
+		System.arraycopy(inputArray, lastIndex, lastEntityIndex, 0, i-lastIndex);
+		entityIndices.add(lastEntityIndex);
+		
+				
+		VIntWritable[] entityIds = new VIntWritable[noOfEntities];
+		int[][] entityBlocks = new int[noOfEntities][];
+		for (VIntWritable[] tmpEntityIndex : entityIndices) {
+			//if (tmpEntityIndex == null || tmpEntityIndex.length() < 2) {continue;} GINETAI NA BGALOUME AUTO TON ELEGXO?			
+			entityIds[counter] = tmpEntityIndex[0];
+			
+			int noOfBlocks = tmpEntityIndex.length-1;
+			entityBlocks[counter] = new int[noOfBlocks];
+			for (i=0; i < noOfBlocks; ++i) {
+				entityBlocks[counter][i] = tmpEntityIndex[i+1].get();
+			}
+			counter++;
 		}
 		
 		DecimalFormat df = new DecimalFormat("#.###"); //format doubles to keep only first 4 decimal points (saves space)
-
-		//dirty ER
-		List<Integer> entities = new ArrayList<>(entityIndex.keySet());				
-		if (entities.size() < 2) {
-			reporter.incrCounter(OutputData.PURGED_BLOCKS, 1);
-			return;
-		}
 		
 		//clean-clean ER
 		/*List<Integer> D1entities = new ArrayList<>();
@@ -123,33 +144,20 @@ public class NPMapper extends MapReduceBase implements Mapper<VIntWritable, Text
 		
 		//dirty ER
 		int blockId = key.get();
-		List<Integer> blockse1;
-		List<Integer> blockse2;		
-		int counter = 0;		
-		Integer []entitiesArray = new Integer[entities.size()];
-		entitiesArray = entities.toArray(entitiesArray);
-		int blockSize = entitiesArray.length;
 		
-		long numEntities = entities.size();
-		
-		reporter.incrCounter(InputData.COMPARISONS, (numEntities * (numEntities-1))/2);
-		
-		for (int i = 0; i < blockSize-1; ++i) {
-			int e1 = entitiesArray[i];
-			reporter.setStatus(++counter+"/"+blockSize);
-			blockse1 = entityIndex.get(e1);
-			for (int j = i+1; j < blockSize; ++j) {
-				int e2 = entitiesArray[j];
-				blockse2 = entityIndex.get(e2);
-				if (!MBTools.isRepeated(blockse1, blockse2, blockId)) {
-					Double weight = MBTools.getWeight(blockse1, blockse2, blockId, weightingScheme, dirtyBlocks);
-					Double weightToEmit = Double.parseDouble(df.format(weight));
-					ei.set(e1);
-					jWij.set(e2+","+weightToEmit);
+		reporter.incrCounter(InputData.COMPARISONS, (noOfEntities * (noOfEntities-1))/2);		
+		for (i = 0; i < noOfEntities-1; ++i) {
+			VIntWritable ei = entityIds[i];
+			reporter.setStatus(i+1+"/"+noOfEntities); 
+			for (int j = i+1; j < noOfEntities; ++j) {				
+				double weight = MBTools.getWeight(blockId, entityBlocks[i], entityBlocks[j], weightingScheme, dirtyBlocks);
+				if (weight > 0) {	
+					VIntWritable ej = entityIds[j];
+					Double weightToEmit = Double.parseDouble(df.format(weight));					
+					jWij.set(ej+","+weightToEmit);
 					output.collect(ei, jWij);
 					
-					ej.set(e2);
-					iWij.set(e1+","+weightToEmit);
+					iWij.set(ei+","+weightToEmit);
 					output.collect(ej, iWij);
 				}
 			}

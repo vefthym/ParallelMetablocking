@@ -51,11 +51,12 @@ public class CEPCountingDriver extends Configured {
 		FileInputFormat.setInputPaths(conf, new Path(args[1])); //Extended Input
 		FileOutputFormat.setOutputPath(conf, new Path(args[2])); //minValue and extra (more than k) elements
 
-		conf.setMapperClass(advanced.CEPMapper.class);		
+		conf.setMapperClass(advanced.CEPMapperNew.class);		
 		conf.setCombinerClass(blockingGraphPruning.CEPCombiner.class);
 		conf.setReducerClass(blockingGraphPruning.CEPReducer.class);		
 		
 		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
+		conf.setInt("mapred.task.timeout", 10000000);
 		conf.setNumReduceTasks(1);
 		
 		conf.setCompressMapOutput(true);
@@ -79,7 +80,12 @@ public class CEPCountingDriver extends Configured {
             Integer dirtyBlocks = Integer.parseInt(br3.readLine());
             conf.setInt("dirtyBlocks", dirtyBlocks);  
             
-            
+            if (args[0].equals("EJS")) {
+            	Path pt2= new Path("/user/hduser/validComparisons.txt");                       
+            	br2=new BufferedReader(new InputStreamReader(fs.open(pt2)));
+            	String validComparisons = br2.readLine();
+            	conf.set("validComparisons", validComparisons);
+            }
             
 	    } catch(Exception e){
 	    	System.err.println(e.toString());

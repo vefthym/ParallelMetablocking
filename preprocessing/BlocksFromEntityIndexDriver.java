@@ -11,7 +11,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapred.Counters;
@@ -27,40 +26,38 @@ import preprocessing.ExtendedInputReducer.OutputData;
 
 
 
-public class ExtendedInputDriver extends Configured {
+public class BlocksFromEntityIndexDriver extends Configured {
 
 	public static void main(String[] args) {
 		JobClient client = new JobClient();
-		JobConf conf = new JobConf(preprocessing.ExtendedInputDriver.class);
+		JobConf conf = new JobConf(preprocessing.BlocksFromEntityIndexDriver.class);
 		
-		conf.setJobName("Extended Input");
+		conf.setJobName("Blocks from Entity Index");
 		
 		conf.setMapOutputKeyClass(VIntWritable.class);
-		conf.setMapOutputValueClass(VIntArrayWritable.class);
+		conf.setMapOutputValueClass(VIntWritable.class);
 		
 		conf.setOutputKeyClass(VIntWritable.class); //block id
-		conf.setOutputValueClass(Text.class); //list of entities in this block, along with their other blocks
+		conf.setOutputValueClass(VIntArrayWritable.class); //list of entities in this block
 		
 		conf.setInputFormat(SequenceFileInputFormat.class);
-		//conf.setOutputFormat(TextOutputFormat.class);
 		conf.setOutputFormat(SequenceFileOutputFormat.class);
 		SequenceFileOutputFormat.setOutputCompressionType(conf,	CompressionType.BLOCK);
 
-		FileInputFormat.setInputPaths(conf, new Path(args[0])); //Entity Index
-		FileOutputFormat.setOutputPath(conf, new Path(args[1])); //extended input file (blocking collection with entity index)
+		FileInputFormat.setInputPaths(conf, new Path(args[0])); //Entity Index (Filtered with block filtering)
+		FileOutputFormat.setOutputPath(conf, new Path(args[1])); //Blocking Collection (Filtered with block filtering)
 
-		conf.setMapperClass(preprocessing.ExtendedInputMapper.class);
-//		conf.setMapperClass(preprocessing.ExtendedInputMapperARCS.class);
-		conf.setReducerClass(preprocessing.ExtendedInputReducer.class);		
+		conf.setMapperClass(preprocessing.BlocksFromEntityIndexMapper.class);
+		conf.setReducerClass(preprocessing.BlocksFromEntityIndexReducer.class);		
 		
 		conf.setInt("mapred.task.timeout", 10000000);
 		conf.set("mapred.reduce.slowstart.completed.maps", "1.00");
-		conf.setMaxReduceTaskFailuresPercent(10); //acceptable failures before the whole job fails
-		conf.set("mapred.reduce.max.attempts", "10"); //before it is not started again
-		conf.set("mapred.max.tracker.failures", "100"); //before it gets black-listed
+		conf.setMaxReduceTaskFailuresPercent(10);		
+		conf.set("mapred.reduce.max.attempts", "10");
+		conf.set("mapred.max.tracker.failures", "100");
 		conf.set("mapred.job.tracker.handler.count", "40");
 		
-		conf.setNumReduceTasks(560);
+		conf.setNumReduceTasks(224);
 		
 		conf.setCompressMapOutput(true);
 

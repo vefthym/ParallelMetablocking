@@ -43,7 +43,7 @@ public class CNP extends MapReduceBase implements Reducer<VIntWritable, Text, Te
 			String[] value = values.next().toString().split(",");
 			Double weight = Double.parseDouble(value[1]);
 			Integer neighbor = Integer.parseInt(value[0]);
-			neighbors.put(weight, neighbor);
+			neighbors.put(weight, neighbor); //make sure that it does not overwrite neighbors with the same weight (e.g. use multimap)
 		}			
 		
 		//Emit top k edges (k nearest neighbors)
