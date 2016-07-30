@@ -1,5 +1,4 @@
 # ParallelMetablocking
-Parallel Meta-blocking in MapReduce
 
 Source code for parallelizing the Meta-Blocking techniques introduced in:
 
@@ -15,27 +14,27 @@ The datasets are available on Google Drive on the following links:
     FB_D: https://drive.google.com/open?id=0B4aFCVb8nejsem0tYWVtcS11TGc&authuser=0
 
 
-* INSTRUCTION FOR EXECUTION (ADVANCED STRATEGY) *
+**INSTRUCTION FOR EXECUTION (ADVANCED STRATEGY)**:
 
 You should run the main files for each of the following steps. To generate a hadoop jar, change the main class in the pom.ml file accordingly:
 
-For Block Filtering:
-Job 1: BlockSizeCounterDriver.java
+For Block Filtering:<br/>
+Job 1: BlockSizeCounterDriver.java <br/>
 Job 2: EntityIndexDriver.java
 
-For preprocessing: 
+For preprocessing: <br/>
 ExtendedInputDriver.java
 
-For WEP:
-Job 1: AverageWeightDriver.java
+For WEP:<br/>
+Job 1: AverageWeightDriver.java<br/>
 Job 2: WEPDriver.java
 
-For CEP:
-Job 1: CEPCountingDriver.java
+For CEP:<br/>
+Job 1: CEPCountingDriver.java<br/>
 Job 2: CEPFinalDriver.java
 
-For WNP:
+For WNP:<br/>
 WNPDriver.java
 
-For CNP:
+For CNP:<br/>
 CNPDriver.java
