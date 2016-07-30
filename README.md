@@ -16,7 +16,7 @@ The datasets are available on Google Drive on the following links:
 
 **INSTRUCTION FOR EXECUTION (ADVANCED STRATEGY)**:
 
-You should run the main files for each of the following steps. To generate a hadoop jar, change the main class in the pom.ml file accordingly:
+You should run the main files for each of the following steps. To generate a hadoop jar, change the main class in the pom.ml file accordingly. 
 
 For Block Filtering:<br/>
 Job 1: BlockSizeCounterDriver.java <br/>
@@ -38,3 +38,5 @@ WNPDriver.java
 
 For CNP:<br/>
 CNPDriver.java
+
+The dependency to blockingFramework can be resolved by downloading the jar file from https://sourceforge.net/projects/erframework/
