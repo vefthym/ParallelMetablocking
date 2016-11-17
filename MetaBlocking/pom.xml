@@ -21,7 +21,9 @@
               <archive>
                 <manifest>
                   <addClasspath>true</addClasspath>
-                  <mainClass>preprocessing.AfterFilteringByteCounter</mainClass>
+                  <!--<mainClass>preprocessing.AfterFilteringByteCounter</mainClass>-->
+                  <!--<mainClass>preprocessing.BlocksFromEntityIndexDriverPairRange1</mainClass>-->
+                  <mainClass>preprocessing.BlocksFromEntityIndexDriverPairRange2</mainClass>
                 </manifest>
               </archive>
             </configuration>

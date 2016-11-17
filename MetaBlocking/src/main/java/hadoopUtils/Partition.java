@@ -3,6 +3,7 @@
  */
 package hadoopUtils;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,10 @@ public class Partition {
 	public Map<Integer,Long> getBlocks() {
 		return blocks;
 	}
+        
+        public Collection<Integer> getBlockIds() {
+            return blocks.keySet();
+        }
 	
 	
 
