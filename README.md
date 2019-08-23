@@ -4,6 +4,10 @@ Source code for parallelizing the Meta-Blocking techniques introduced in:
 
 V. Efthymiou, G. Papadakis, G. Papastefanatos, K. Stefanidis, T. Palpanas: Parallel Meta-blocking: Realizing Scalable Entity Resolution over Large, Heterogeneous Data. IEEE Big Data Conference 2015.
 
+and later extended with an entity-based strategy and MaxBlock load balancing algorithm in:
+
+V. Efthymiou, G. Papadakis, G. Papastefanatos, K. Stefanidis, T. Palpanas. Parallel Meta-blocking for Scaling Entity Resolution over Big Heterogeneous Data, Information Systems 65: 137-157 (2017).
+
 The code is written in Java version 7, using Apache Hadoop, version 1.2.0. All experiments were performed on a cluster with 15 Ubuntu 12.04.3 LTS servers, one master and 14 slaves, each having 8 AMD 2.1 GHz CPUs and 8 GB of RAM. Each node can run 4 map or reduce tasks simultaneously, assigning 1024 MB to each task. The available disk space amounted to 4 TB and was equally partitioned among the 15 nodes.
 
 The datasets are available on Google Drive on the following links:
