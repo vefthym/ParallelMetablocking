@@ -43,4 +43,19 @@ WNPDriver.java
 For CNP:<br/>
 CNPDriver.java
 
-The dependency to blockingFramework can be resolved by downloading the jar file from https://sourceforge.net/projects/erframework/
+
+**INSTRUCTIONS FOR EXECUTION (ENTITY-BASED STRATEGY)**:
+
+For Block Filtering:<br/>
+Job 1: BlockSizeCounterDriver.java <br/>
+Job 2: EntityIndexDriver.java <br/>
+ 
+For Preprocessing:<br/>
+Job 1: ParallelMetablocking/MetaBlocking/src/main/java/preprocessing/BlocksFromEntityIndexDriver.java
+ 
+For WNP:<br/>
+Job 1: ParallelMetablocking/MetaBlocking/src/main/java/entityBased/EntityBasedDriverWNP.java
+
+**DEPENDENCIES**:
+The dependency to blockingFramework can be resolved by downloading the jar file from https://sourceforge.net/projects/erframework/<br/>
+The source files there also contain very useful code for different blocking and meta-blocking techniques. 
