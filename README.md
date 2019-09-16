@@ -18,6 +18,12 @@ The datasets are available on Google Drive on the following links:
     FB_D: https://drive.google.com/open?id=0B4aFCVb8nejsem0tYWVtcS11TGc&authuser=0
 
 
+Entity-based CNP is also implemented in Apache Spark in a later work published in EDBT 2019:
+
+V. Efthymiou, G. Papadakis, K. Stefanidis, V. Christophides. MinoanER: Schema-Agnostic, Non-Iterative, Massively Parallel Resolution of Web Entities. EDBT 2019.
+
+The code of this work is also on github: https://github.com/vefthym/MinoanER and the folder containing the entity-based CNP implementation can be found here: https://github.com/vefthym/MinoanER/tree/master/src/main/java/minoaner/metablocking/entityBased
+
 **INSTRUCTION FOR EXECUTION (ADVANCED STRATEGY)**:
 
 You should run the main files for each of the following steps. To generate a hadoop jar, change the main class in the pom.ml file accordingly. 
@@ -57,5 +63,6 @@ For WNP:<br/>
 Job 1: ParallelMetablocking/MetaBlocking/src/main/java/entityBased/EntityBasedDriverWNP.java
 
 **DEPENDENCIES**:
+
 The dependency to blockingFramework can be resolved by downloading the jar file from https://sourceforge.net/projects/erframework/<br/>
 The source files there also contain very useful code for different blocking and meta-blocking techniques. 
