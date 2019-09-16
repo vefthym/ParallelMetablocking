@@ -24,7 +24,7 @@ V. Efthymiou, G. Papadakis, K. Stefanidis, V. Christophides. MinoanER: Schema-Ag
 
 The code of this work is also on github: https://github.com/vefthym/MinoanER and the folder containing the entity-based CNP implementation can be found here: https://github.com/vefthym/MinoanER/tree/master/src/main/java/minoaner/metablocking/entityBased
 
-**INSTRUCTION FOR EXECUTION (ADVANCED STRATEGY)**:
+**INSTRUCTIONS FOR EXECUTION (ADVANCED STRATEGY)**:
 
 You should run the main files for each of the following steps. To generate a hadoop jar, change the main class in the pom.ml file accordingly. 
 
@@ -32,7 +32,7 @@ For Block Filtering:<br/>
 Job 1: BlockSizeCounterDriver.java <br/>
 Job 2: EntityIndexDriver.java
 
-For preprocessing: <br/>
+For Preprocessing: <br/>
 ExtendedInputDriver.java
 
 For WEP:<br/>
@@ -57,10 +57,10 @@ Job 1: BlockSizeCounterDriver.java <br/>
 Job 2: EntityIndexDriver.java <br/>
  
 For Preprocessing:<br/>
-Job 1: ParallelMetablocking/MetaBlocking/src/main/java/preprocessing/BlocksFromEntityIndexDriver.java
+BlocksFromEntityIndexDriver.java
  
 For WNP:<br/>
-Job 1: ParallelMetablocking/MetaBlocking/src/main/java/entityBased/EntityBasedDriverWNP.java
+EntityBasedDriverWNP.java
 
 **DEPENDENCIES**:
 
