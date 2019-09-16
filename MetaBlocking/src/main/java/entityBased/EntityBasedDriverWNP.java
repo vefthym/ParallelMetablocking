@@ -45,8 +45,11 @@ public class EntityBasedDriverWNP {
 
 		conf.setJobName("Entity Based WNP");
 		
+		conf.setMapOutputKeyClass(VIntWritable.class);
+		conf.setMapOutputValueClass(VIntArrayWritable.class);
+ 
 		conf.setOutputKeyClass(VIntWritable.class);
-		conf.setOutputValueClass(VIntArrayWritable.class);
+		conf.setOutputValueClass(VIntWritable.class);
 				
 		conf.setInputFormat(SequenceFileInputFormat.class);
 		conf.setOutputFormat(SequenceFileOutputFormat.class);
