@@ -2,11 +2,11 @@
 
 Source code for parallelizing the Meta-Blocking techniques introduced in:
 
-V. Efthymiou, G. Papadakis, G. Papastefanatos, K. Stefanidis, T. Palpanas: Parallel Meta-blocking: Realizing Scalable Entity Resolution over Large, Heterogeneous Data. IEEE Big Data Conference 2015.
+[V. Efthymiou, G. Papadakis, G. Papastefanatos, K. Stefanidis, T. Palpanas: Parallel Meta-blocking: Realizing Scalable Entity Resolution over Large, Heterogeneous Data. IEEE Big Data Conference 2015](https://doi.org/10.1109/BigData.2015.7363782)
 
 and later extended with an entity-based strategy and MaxBlock load balancing algorithm in:
 
-V. Efthymiou, G. Papadakis, G. Papastefanatos, K. Stefanidis, T. Palpanas: Parallel Meta-blocking for Scaling Entity Resolution over Big Heterogeneous Data. Information Systems 65: 137-157 (2017).
+[V. Efthymiou, G. Papadakis, G. Papastefanatos, K. Stefanidis, T. Palpanas: Parallel Meta-blocking for Scaling Entity Resolution over Big Heterogeneous Data. Information Systems 65: 137-157 (2017)](https://doi.org/10.1016/j.is.2016.12.001)
 
 **Datasets**: 
 
