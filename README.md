@@ -10,7 +10,8 @@ and later extended with an entity-based strategy and MaxBlock load balancing alg
 
 **Datasets**: 
 
-The datasets are available on Zenodo: https://zenodo.org/record/6408960#.YkmvwjVRVhE
+The datasets are available on Zenodo: https://zenodo.org/record/6408960#.YkmvwjVRVhE. <br/>
+More datasets, including some of the ones also used in this work, are available on https://www.csd.uoc.gr/~vefthym/minoanER/datasets.html.
 
 
 **Implementation Details:**
